@@ -4,6 +4,17 @@ const GoogleStrategy = require('passport-google-oauth20');
 const keys = require('./keys');
 const User = require('../models/User');
 
+ //add these two methods
+ passport.serializeUser((user, done) => {
+    done(null, user.id);
+  })
+
+  passport.deserializeUser((id, done) => {
+   User.findById(id).then(user => {
+       done(null, user);
+    });
+});
+
 passport.use(new GoogleStrategy({
     clientID: keys.googleValues.clientID,
     clientSecret: keys.googleValues.clientSecret,
@@ -23,14 +34,15 @@ passport.use(new GoogleStrategy({
             let user = await User.findOne({googleId : profile.id});
             //if user already exists
             if(user) {
-                   // done(null, user);
                    console.log("already registered" + user);
+                   done(null, user); //go to serializeUser
+
             }
             //create new user
             else {
                   await User.create(NewUser);
-                   //done(null, user);
                    console.log("registered " + NewUser);
+                  done(null, NewUser);
                  }
         }
          catch (error) {
